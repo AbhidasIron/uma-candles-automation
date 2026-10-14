@@ -10,3 +10,11 @@ services:
     volumes:
       - ./reports:/app/reports
       - ./test-results:/app/test-results
+
+  # Playwright UI mode served to the host browser at http://localhost:8080
+  ui:
+    extends:
+      service: tests
+    ports:
+      - "127.0.0.1:8080:8080"
+    command: npx playwright test --ui-host=0.0.0.0 --ui-port=8080

@@ -16,7 +16,8 @@
     "allure:open": "allure open reports/allure-report",
     "allure:report": "npm run allure:generate && npm run allure:open",
     "docker:build": "docker compose build",
-    "docker:test": "docker compose run --rm tests"
+    "docker:test": "docker compose run --rm tests",
+    "docker:ui": "docker compose up ui"
   },
   "keywords": [],
   "author": "",

@@ -272,6 +272,9 @@ One service `tests`:
 ### Step 9.4 – npm scripts
 `docker:build` (`docker compose build`) and `docker:test` (`docker compose run --rm tests`).
 
+### Step 9.4.1 – UI mode from Docker (`ui` service)
+A container has no screen, so `--headed` cannot show a window. The `ui` service (`extends: tests`) starts Playwright UI mode as a web server (`--ui-host=0.0.0.0 --ui-port=8080`) and publishes it on `127.0.0.1:8080` only (not exposed to your network). Run `npm run docker:ui`, open <http://localhost:8080>, pick tests and watch each step live with DOM snapshots.
+
 ### Step 9.5 – `.github/workflows/docker.yml`
 Builds the image and runs the tests inside it on GitHub Actions, then generates the Allure report and uploads `reports/` as an artifact. Triggered manually (with optional `grep`) or when Docker/dependency files change, so normal pushes don't run the suite twice.
 
