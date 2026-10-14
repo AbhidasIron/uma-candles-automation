@@ -13,6 +13,7 @@ End-to-end test automation for [uma-candles.vercel.app](https://uma-candles.verc
 | Design pattern | Page Object Model + custom fixtures |
 | Reports | Playwright HTML, JUnit XML, Allure 3 |
 | CI/CD | GitHub Actions, Jenkins |
+| Containerisation | Docker, Docker Compose |
 | Config | `dotenv` (`.env`) |
 
 ## Project structure
@@ -32,6 +33,8 @@ End-to-end test automation for [uma-candles.vercel.app](https://uma-candles.verc
 │   ├── apiHelper.js                   # API helpers (seed users)
 │   └── dataFactory.js                 # unique test data generator
 ├── .env.example
+├── Dockerfile
+├── docker-compose.yml
 ├── Jenkinsfile
 └── playwright.config.js
 ```
@@ -65,6 +68,19 @@ cp .env.example .env
 | `npx playwright test --grep @smoke` | Run by tag |
 | `npx playwright test -g "TC_AUTH_01"` | Run a single test by ID |
 
+## Running in Docker
+
+No local Node.js or browsers needed – only Docker. The image is based on the official `mcr.microsoft.com/playwright:v1.64.0-noble`.
+
+```bash
+npm run docker:build                                     # or: docker compose build
+npm run docker:test                                      # or: docker compose run --rm tests
+docker compose run --rm tests npm test -- --grep @smoke  # pass any Playwright args
+docker compose run --rm tests npm run allure:generate    # build Allure report
+```
+
+Reports and failure artefacts are written to `./reports` and `./test-results` on the host (mounted volumes). Override the target with `BASE_URL=https://... docker compose run --rm tests`.
+
 ## Reports
 
 | Report | Command / Location |
@@ -94,6 +110,8 @@ Screenshots, videos and traces are captured **only on failure**.
 **GitHub Actions** – runs on push/PR to `main`, daily schedule, and manually (optional `grep` input such as `@smoke`). Playwright HTML and Allure reports are uploaded as run artifacts. Optional repo variable `BASE_URL` and secret `TEST_USER_PASSWORD`.
 
 **Jenkins** – declarative pipeline in `Jenkinsfile` with `BASE_URL` and `GREP` parameters. Requires the NodeJS (tool `node22`), HTML Publisher, JUnit and Allure plugins.
+
+**Docker (GitHub Actions)** – `.github/workflows/docker.yml` builds the image and runs the suite inside it. Triggered manually or when Docker/dependency files change on `main`.
 
 ## Known limitations
 

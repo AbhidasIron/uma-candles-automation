@@ -14,7 +14,9 @@
     "allure:clean": "node -e \"require('fs').rmSync('reports/allure-results',{recursive:true,force:true})\"",
     "allure:generate": "allure generate reports/allure-results -o reports/allure-report",
     "allure:open": "allure open reports/allure-report",
-    "allure:report": "npm run allure:generate && npm run allure:open"
+    "allure:report": "npm run allure:generate && npm run allure:open",
+    "docker:build": "docker compose build",
+    "docker:test": "docker compose run --rm tests"
   },
   "keywords": [],
   "author": "",

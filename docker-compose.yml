@@ -1,0 +1,12 @@
+services:
+  tests:
+    build: .
+    image: uma-candles-tests
+    init: true
+    ipc: host
+    environment:
+      BASE_URL: ${BASE_URL:-https://uma-candles.vercel.app}
+      TEST_USER_PASSWORD: ${TEST_USER_PASSWORD:-Test@1234}
+    volumes:
+      - ./reports:/app/reports
+      - ./test-results:/app/test-results

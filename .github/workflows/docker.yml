@@ -1,0 +1,40 @@
+name: Docker Tests
+
+on:
+  push:
+    branches: [main, master]
+    paths: [Dockerfile, docker-compose.yml, .dockerignore, package.json, package-lock.json]
+  workflow_dispatch:
+    inputs:
+      grep:
+        description: 'Run only tests matching this tag/title (e.g. @smoke)'
+        required: false
+        default: ''
+
+jobs:
+  docker-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      BASE_URL: ${{ vars.BASE_URL || 'https://uma-candles.vercel.app' }}
+      TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD || 'Test@1234' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker compose build
+
+      - name: Run tests in container
+        run: docker compose run --rm tests npm test -- ${{ github.event.inputs.grep && format('--grep "{0}"', github.event.inputs.grep) || '' }}
+
+      - name: Generate Allure report
+        if: ${{ !cancelled() }}
+        run: docker compose run --rm tests npm run allure:generate
+
+      - name: Upload reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-reports
+          path: reports
+          retention-days: 14

@@ -249,6 +249,41 @@ Jenkins prerequisites: plugins **NodeJS**, **HTML Publisher**, **JUnit**, **Allu
 
 ---
 
+## Phase 9 – Docker
+
+Goal: run the suite identically on any machine or CI agent without installing Node.js or browsers.
+
+### Step 9.1 – `Dockerfile`
+- Base image `mcr.microsoft.com/playwright:v1.64.0-noble` – official image with Node.js, Chromium/Firefox/WebKit and all OS libraries preinstalled. Its version **must match** `@playwright/test` in `package-lock.json`, otherwise Playwright can't find the browsers; bump both together.
+- `COPY package.json package-lock.json` then `npm ci` **before** `COPY . .` – Docker caches the dependency layer, so code-only changes rebuild in seconds.
+- `ENV CI=true` – activates CI behaviour from `playwright.config.js` (retries, `forbidOnly`, 2 workers).
+- `CMD ["npm", "test"]` – default command; `pretest` clears old Allure results first.
+- Runs as root (image default) so the container can write to bind-mounted `reports/` on any host without UID mismatches. Acceptable here because it only browses our own site.
+
+### Step 9.2 – `.dockerignore`
+Excludes `node_modules`, reports, `.env` (secrets) and `.git` from the build context – smaller, faster builds and no secrets baked into the image.
+
+### Step 9.3 – `docker-compose.yml`
+One service `tests`:
+- `init: true` / `ipc: host` – recommended by Playwright so Chromium doesn't crash from limited shared memory and zombie processes are reaped.
+- `environment` – passes `BASE_URL` / `TEST_USER_PASSWORD` from the host shell (with defaults).
+- `volumes` – maps `reports/` and `test-results/` back to the host so reports are visible after the container exits.
+
+### Step 9.4 – npm scripts
+`docker:build` (`docker compose build`) and `docker:test` (`docker compose run --rm tests`).
+
+### Step 9.5 – `.github/workflows/docker.yml`
+Builds the image and runs the tests inside it on GitHub Actions, then generates the Allure report and uploads `reports/` as an artifact. Triggered manually (with optional `grep`) or when Docker/dependency files change, so normal pushes don't run the suite twice.
+
+Usage:
+```bash
+npm run docker:build
+npm run docker:test
+docker compose run --rm tests npm test -- --grep @smoke
+```
+
+---
+
 ## How to run locally
 ```bash
 npm ci
