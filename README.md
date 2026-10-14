@@ -81,7 +81,7 @@ docker compose run --rm tests npm run allure:generate    # build Allure report
 
 Reports and failure artefacts are written to `./reports` and `./test-results` on the host (mounted volumes). Override the target with `BASE_URL=https://... docker compose run --rm tests`.
 
-**Watching tests from Docker:** containers have no display, so a headed browser can't open. Instead run `npm run docker:ui` and open <http://localhost:8080> – Playwright UI mode runs inside the container and streams a live, step-by-step view to your browser. Stop with `Ctrl+C` then `docker compose down`. For a real headed browser, run locally with `npm run test:headed`.
+**Watching tests from Docker:** containers have no display, so a headed browser can't open. Instead run `npm run docker:ui` and open <http://localhost:8080> (not the `http://0.0.0.0:8080` link from the logs – browsers block it and show a blank page) – Playwright UI mode runs inside the container and streams a live, step-by-step view to your browser. Stop with `Ctrl+C` then `docker compose down`. For a real headed browser, run locally with `npm run test:headed`.
 
 ## Reports
 
