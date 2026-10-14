@@ -1,0 +1,28 @@
+{
+  "name": "uma-testing",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright + JavaScript E2E automation framework for UMA Candles",
+  "scripts": {
+    "pretest": "npm run allure:clean",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:auth": "playwright test tests/auth",
+    "test:debug": "playwright test --debug",
+    "test:ui": "playwright test --ui",
+    "report": "playwright show-report reports/html",
+    "allure:clean": "node -e \"require('fs').rmSync('reports/allure-results',{recursive:true,force:true})\"",
+    "allure:generate": "allure generate reports/allure-results -o reports/allure-report",
+    "allure:open": "allure open reports/allure-report",
+    "allure:report": "npm run allure:generate && npm run allure:open"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.64.0",
+    "allure": "^3.20.1",
+    "allure-playwright": "^3.13.0",
+    "dotenv": "^18.0.7"
+  }
+}

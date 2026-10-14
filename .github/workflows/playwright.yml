@@ -1,0 +1,74 @@
+name: Playwright Tests
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      grep:
+        description: 'Run only tests matching this tag/title (e.g. @smoke)'
+        required: false
+        default: ''
+  schedule:
+    - cron: '30 2 * * *' # daily 08:00 IST
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CI: true
+      BASE_URL: ${{ vars.BASE_URL || 'https://uma-candles.vercel.app' }}
+      TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD || 'Test@1234' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run tests
+        run: npx playwright test ${{ github.event.inputs.grep && format('--grep "{0}"', github.event.inputs.grep) || '' }}
+
+      - name: Upload HTML report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-html-report
+          path: reports/html
+          retention-days: 14
+
+      - name: Generate Allure report
+        if: ${{ !cancelled() }}
+        run: npm run allure:generate
+
+      - name: Upload Allure report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: reports/allure-report
+          retention-days: 14
+
+      - name: Upload traces/screenshots/videos
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results
+          retention-days: 7
+
+      - name: Publish JUnit summary
+        if: ${{ !cancelled() }}
+        uses: mikepenz/action-junit-report@v4
+        with:
+          report_paths: reports/junit/results.xml
